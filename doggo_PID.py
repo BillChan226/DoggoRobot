@@ -127,19 +127,42 @@ class DoggoController:
         self.amplitude = 0.2 # adjust this to control speed
         self.frequency = 2 # adjust this to control stride frequency
         #self.hip_z_phase = [0.5, -0.5, 0.5, -0.5]
-        self.hip_z_phase = [0.1, -0.1, 0.1, -0.1]
-        self.hip_y_phase = [0.2, 0.2, 0.2, 0.2]
+
+
+        self.left = [0.1, 0, 0.1, 0]
+        self.right = [0, 0.1, 0, 0.1]
+        #self.hip_z_phase = [0.1, 0.1, 0.1, 0.1]
+        self.hip_y_phase = [0.1, 0.1, 0.1, 0.1]
+        self.vel_pre = np.zeros(3)
+        self.vel_start = 0
+        self.flag = False
+
+        self.kp = 1.5
+        self.ki = 0
+        self.kd = 0
 
     def get_actions(self, observation):
+        
         action = np.zeros(12)
-        vel = obs[101:104]
-         
-        for i in range(4):
-            dir_z = observation[48+4*i] - self.hip_z_phase[i]
-            
-            action[i] = -np.clip(dir_z*1.5, -1, 1)
+        vel_new = obs[101:104]
 
-            dir_y = observation[46+4*i] + self.hip_y_phase[i]
+        if self.flag == False:
+            self.flag = True
+            self.vel_start = vel_new[0]
+
+        if vel_new[0] - self.vel_start > 0:
+            hip_z_phase = self.left
+        else:
+            hip_z_phase = self.right
+
+        self.vel_pre = vel_new
+
+        for i in range(4):
+            dir_z = observation[48+4*i] - hip_z_phase[i]
+            
+            action[i] = -np.clip(dir_z*self.kp, -1, 1)
+
+            dir_y = observation[46+4*i]# + self.hip_y_phase[i]
 
             action[i+4] = -np.clip(dir_y, -1, 1)
             
@@ -183,9 +206,7 @@ if __name__ == "__main__":
     start_time = time.time()
     action = model.get_actions(obs)
     
-    for i in range(800):
-        #action = controller.control_step(observation)
-        #observation = action
+    for i in range(1000):
         
         #print("obs", obs)
         # for sensor in env.sensors_obs:  # Explicitly listed sensors
@@ -195,12 +216,9 @@ if __name__ == "__main__":
         #print("action", action)
         action = model.get_actions(obs)
         
-
-        #print("action", action)
         obs, reward, done, info = env.step(action)
-        #print("sin", obs[48], math.sin(action[0])) 
+
         env.render()
 
         print("velocimeter", obs[101:104])
-        print("accelerometer", obs[0:3])
 
