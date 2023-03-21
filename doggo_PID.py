@@ -206,7 +206,7 @@ if __name__ == "__main__":
     start_time = time.time()
     action = model.get_actions(obs)
     
-    for i in range(1000):
+    for i in range(2000):
         
         #print("obs", obs)
         # for sensor in env.sensors_obs:  # Explicitly listed sensors
