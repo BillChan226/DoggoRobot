@@ -138,8 +138,13 @@ class DoggoController:
         self.flag = False
 
         self.kp = 1.5
-        self.ki = 1
+        self.ki = 0.1
         self.kd = 0.5
+
+        self.ro_kp = 0.8
+        self.ro_ki = 0.05
+        self.ro_kd = 0.2
+
         self.dirzOld = np.zeros(4)
         self.dirzSum = np.zeros(4)
 
@@ -242,7 +247,7 @@ class DoggoController:
             dir_z[i] = observation[48 + 4 * i] - hip_z_phase[i]
         self.dirzSum = np.add(dir_z, self.dirzSum)
         for i in range(4):
-            action[i] = -np.clip(dir_z[i] * self.kp + self.dirzSum[i] *self.ki + (self.dirzOld[i]-dir_z[i])*self.kd, -1, 1)
+            action[i] = -np.clip(dir_z[i] * self.ro_kp + self.dirzSum[i] *self.ro_ki + (self.dirzOld[i]-dir_z[i])*self.ro_kd, -1, 1)
 
             dir_y = observation[46 + 4 * i]  # + self.hip_y_phase[i]
 
