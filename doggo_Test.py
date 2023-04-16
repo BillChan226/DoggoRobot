@@ -49,13 +49,13 @@ class DoggoController:
         self.vel_pre = vel_new
 
         for i in range(4):
-            dir_z = observation[48 + 4 * i] - hip_z_phase[i]
+            # dir_z = observation[48 + 4 * i] - hip_z_phase[i]
 
-            action[i] = -np.clip(dir_z * self.kp, -1, 1)
+            action[i] = 1
 
-            dir_y = observation[46 + 4 * i]  # + self.hip_y_phase[i]
+            # dir_y = observation[46 + 4 * i]  # + self.hip_y_phase[i]
 
-            action[i + 4] = -np.clip(dir_y, -1, 1)
+            action[i + 4] = 1
 
             action[i + 8] = 0
 
@@ -103,10 +103,34 @@ if __name__ == "__main__":
         # action = np.ones(12)
         # print("action", action)
         action = np.zeros(12)
-        action[8] = 1
+        action[11] = -1
+        action[7] = -1
+        print(1)
+        # action 4 hip1y
+        # action 8 hip4y
+        # for i in range(3):
+        #     # dir_z = observation[48 + 4 * i] - hip_z_phase[i]
+        #
+        #     action[i] = 1
+        #
+        #     # dir_y = observation[46 + 4 * i]  # + self.hip_y_phase[i]
+        #
+        #     action[i + 4] = 1
+        #
+        #     action[i + 8] = 1
+        # for i in [3]:
+        #     # dir_z = observation[48 + 4 * i] - hip_z_phase[i]
+        #
+        #     action[i] = -1
+        #
+        #     # dir_y = observation[46 + 4 * i]  # + self.hip_y_phase[i]
+        #
+        #     action[i + 4] = -1
+        #
+        #     action[i + 8] = -1
 
         obs, reward, done, info = env.step(action)
-        time.sleep(0.05)
+        time.sleep(1)
         env.render()
 
-        print("velocimeter", obs[101:104])
+        # print("velocimeter", obs[101:104])
