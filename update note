@@ -1,0 +1,8 @@
+Put the motorPID in the main folder
+add in import
+from motorPID import DoggoController
+add in line 345
+pid = DoggoController()
+add in line 366
+a = pid.get_action(a,o)
+
