@@ -49,12 +49,17 @@ class DoggoController:
         self.errorList = []
         self.actionList=[]
         self.expectList = []
+        motorIndex = [10, 14, 18, 22, 8, 12, 16, 20, 0, 2, 4, 6]
+        self.motorTrans = np.zeros((12, 24))
+        for i in range(12):
+            self.motorTrans[i][motorIndex[i]] = 1
         # self.motorDir = {"hip_z":0,"hip_y":1,"ankle":2}
         # self.legDir = {"fl":0,"fr":9, "bl":3,"br":6}
 
         
 
-    def get_action(self,expect, actual):
+    def get_action(self,expect, state):
+        actual = np.degrees(np.arcsin(motorTrans.dot(state[38:62])))
         actual = (actual - self.base) / self.halfrange
         # expect = -0.5
         error = expect-actual
@@ -68,6 +73,8 @@ class DoggoController:
         action = self.kp*error + self.ki* self.cumulative_error + self.kd*errorChange
         self.actionList.append(action[0])
         return np.clip(action, -1, 1)
+    # def moveforward(self,env):
+
 
 
 
@@ -94,9 +101,9 @@ if __name__ == "__main__":
 
         # TODO: ADD the model to train return as targetArray
         targetArray = np.zeros(12)
-        state = np.degrees(np.arcsin(motorTrans.dot(obs[38:62])))
+        # state = np.degrees(np.arcsin(motorTrans.dot(obs[38:62])))
         # state = motorTrans.dot(state)
-        action = model.get_action(targetArray,state)
+        action = model.get_action(targetArray,obs)
         # for i in range(12):
         #     print(obs[motorIndex[i]])
         #     if obs[motorIndex[i]+1] ==0:
