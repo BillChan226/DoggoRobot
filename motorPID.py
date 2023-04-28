@@ -58,14 +58,14 @@ class DoggoController:
         # self.legDir = {"fl":0,"fr":9, "bl":3,"br":6}
 
     def get_action(self, expect, state):
-        actual = np.degrees(np.arcsin(motorTrans.dot(state[38:62])))
+        actual = np.degrees(np.arcsin(self.motorTrans.dot(state[38:62])))
         actual = (actual - self.base) / self.halfrange
         # expect = -0.5
         error = expect - actual
-        self.expectList.append(actual[4])
+        # self.expectList.append(actual[4])
 
         # print(error)
-        self.errorList.append(error[8])
+        # self.errorList.append(error[8])
         errorChange = self.old_error - error
         self.cumulative_error += error
         self.old_error = error

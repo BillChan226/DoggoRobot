@@ -30,9 +30,9 @@ class DoggoController:
         self.kp = np.zeros(12)
         self.ki = np.zeros(12)
         self.kd = np.zeros(12)
-        self.kp = np.array([0.4, 0.4, 0.4, 0.4, 1.2, 1.2, 1.2, 1.2, 1.5, 1.5, 1.5, 1.5])
-        self.ki = np.array([0.0005, 0.0005, 0.0005, 0.0005, 0.015, 0.015, 0.015, 0.015, 0.008, 0.008, 0.008, 0.008])
-        self.kd = np.array([-0.06, -0.06, -0.06, -0.06, -0.15, -0.15, -0.15, -0.15, -0.3, -0.3, -0.3, -0.3])
+        self.kp = np.array([0.4, 0.3, 0.3, 0.4, 0.8, 0.8, 0.3, 0.3, 1.8, 1.8, 0.4, 0.4])
+        # self.ki = np.array([0.0005, 0.0005, 0.0005, 0.0005, 0.015, 0.015, 0.015, 0.015, 0.008, 0.008, 0.008, 0.008])
+        # self.kd = np.array([-0.06, -0.06, -0.06, -0.06, -0.15, -0.15, -0.15, -0.15, -0.3, -0.3, -0.3, -0.3])
         # self.kp[4] = 1.2
         # self.ki[4] = 0.015
         # self.kd[4] = -0.15
@@ -47,6 +47,8 @@ class DoggoController:
         self.base = np.array([10, 10, 10, 10, -30, 67.5, 67.5, -30, -37.5, -37.5, -37.5, -37.5])
         self.halfrange = np.array([20, 20, 20, 20, 45, 67.5, 67.5, 45, 37.5, 37.5, 37.5, 37.5])
         self.errorList = []
+        for i in range(12):
+            self.errorList.append([])
         self.actionList=[]
         self.expectList = []
         motorIndex = [10, 14, 18, 22, 8, 12, 16, 20, 0, 2, 4, 6]
@@ -59,21 +61,26 @@ class DoggoController:
         
 
     def get_action(self,expect, state):
-        actual = np.degrees(np.arcsin(motorTrans.dot(state[38:62])))
+        actual = np.degrees(np.arcsin(self.motorTrans.dot(state[38:62])))
         actual = (actual - self.base) / self.halfrange
         # expect = -0.5
         error = expect-actual
         self.expectList.append(actual[4])
 
         # print(error)
-        self.errorList.append(error[8])
+        for i in range(12):
+            self.errorList[i].append(error[i])
         errorChange = self.old_error-error
         self.cumulative_error += error
         self.old_error = error
         action = self.kp*error + self.ki* self.cumulative_error + self.kd*errorChange
         self.actionList.append(action[0])
         return np.clip(action, -1, 1)
-    # def moveforward(self,env):
+    def moveforward(self,env):
+        #move left
+        targetArray = np.zeros(12)
+
+
 
 
 
@@ -85,10 +92,10 @@ if __name__ == "__main__":
     # model = PIDController()
     model = DoggoController()
     # motorIndex = [48,52,56,60,46,50,54,58,38,40,42,44]
-    motorIndex = [10, 14, 18, 22, 8, 12, 16, 20, 0, 2, 4, 6]
-    motorTrans = np.zeros((12,24))
-    for i in range(12):
-        motorTrans[i][motorIndex[i]]=1
+    # motorIndex = [10, 14, 18, 22, 8, 12, 16, 20, 0, 2, 4, 6]
+    # motorTrans = np.zeros((12,24))
+    # for i in range(12):
+    #     motorTrans[i][motorIndex[i]]=1
 
     start_time = time.time()
     # action = model.get_actions_Forward(obs)
@@ -117,9 +124,13 @@ if __name__ == "__main__":
 
         # print("velocimeter", obs[101:104])
     plt.figure(0)
-    plt.plot(model.errorList)
+    for i in range(12):
+        plt.figure(i%4)
+        plt.plot(model.errorList[i],label = str(int(i)))
+        plt.legend()
     # plt.figure(1)
     # plt.plot(model.actionList)
     # plt.figure(2)
     # plt.plot(model.expectList)
+    plt.legend()
     plt.show()

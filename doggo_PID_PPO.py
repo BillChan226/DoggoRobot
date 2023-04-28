@@ -561,13 +561,13 @@ def train():
                 env.render()
             # select action with policy
             action = ppo_agent.select_action(state)
-
             targetArray = action #np.zeros(12)
-            #action = []
+            action = []
+            obs = state
             for i in range(12):
-                print(state[motorIndex[i]])
+                # print(state[motorIndex[i]])
                 action.append(action_model.get_actions_Motor(np.arcsin(obs[motorIndex[i]]),targetArray[i],i))
-            print(action)
+            # print(action)
             #obs, reward, done, info = env.step(action)
 
 

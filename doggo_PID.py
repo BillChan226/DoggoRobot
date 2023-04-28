@@ -209,11 +209,12 @@ class DoggoController:
         if self.flag == False:
             self.flag = True
             self.vel_start = vel_new[0]
-
-        if vel_new[0] - self.vel_start > 0:
-            hip_z_phase = self.right
-        else:
-            hip_z_phase = self.left
+        # hip_z_phase = [0.3,0.3,0,0]   #rotation to left
+        # hip_z_phase = [0,0,0.3,-0.3]   #rotation to left
+        # if vel_new[1] - self.vel_start > 0:
+        #     hip_z_phase = [0.3, 0.3, 0, 0]
+        # else:
+        #     hip_z_phase = [0, 0, 0, 0]
 
         self.vel_pre = vel_new
         dir_z = np.zeros(4)
@@ -269,7 +270,7 @@ if __name__ == "__main__":
     start_time = time.time()
     action = model.get_actions_Forward(obs)
     test = "Forward"
-    # test = "Backward"
+    test = "Backward"
     # test = "Left"
     # test = "Right"
 
