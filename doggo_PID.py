@@ -147,7 +147,69 @@ class DoggoController:
 
         self.dirzOld = np.zeros(4)
         self.dirzSum = np.zeros(4)
+    def get_actions(self, observation,actionNum):
 
+        action = np.zeros(12)
+        vel_new = obs[101:104]
+
+        if self.flag == False:
+            self.flag = True
+            self.vel_start = vel_new[0]
+        hip_z_phase = [0,0,0,0]
+
+        actionDic = {0:"forward",1:"left circle",2:"left rotate",3:"right circle",4:"right rotate"}
+        if actionNum == 0:
+            if vel_new[0] - self.vel_start > 0:
+                hip_z_phase = self.left
+            else:
+                hip_z_phase = self.right
+        elif actionNum == 1:
+            hip_z_phase = [0.3,0.3,0,0]
+        elif actionNum == 2:
+            hip_z_phase = [0,0,0.3,-0.3]
+        elif actionNum == 3:
+            hip_z_phase = [0,0,0.3,0.3]
+        elif actionNum == 4:
+            hip_z_phase = [-0.3,0.3,0,0]
+
+        self.vel_pre = vel_new
+        dir_z = np.zeros(4)
+        for i in range(4):
+            dir_z[i] = observation[48 + 4 * i] - hip_z_phase[i]
+        self.dirzSum = np.add(dir_z, self.dirzSum)
+        for i in range(4):
+            action[i] = -np.clip(dir_z[i] * self.kp + self.dirzSum[i] *self.ki + (self.dirzOld[i]-dir_z[i])*self.kd, -1, 1)
+
+            dir_y = observation[46 + 4 * i]  # + self.hip_y_phase[i]
+
+            action[i + 4] = -np.clip(dir_y, -1, 1)
+
+            action[i + 8] = 0
+
+            # error1 = observation[48+4*i]-0.1
+            # error2 = observation[50+4*i]-0
+
+            # if abs(error1) > 0.1:
+
+            #     action[i] = -np.clip(error1*1.5, -1, 1)
+            #     if i == 0: action[i] = action[i] #+ 0.3
+            # else:
+            #     action[i] = 0
+
+            # if abs(error2) > 0.1:
+            #     action[i+4] = -np.clip(error2, -1, 1)
+            # else: action[i+4] = 0
+
+        # action[i+8] = 0
+        # print("hip_y", observation[46+4*i])
+        # print("hip_z", observation[48+4*i])
+        # print("ankle1", observation[38+4*i])
+        # print("ankle2", observation[39+4*i])
+
+        # action[i+8] = 0 # match the hip motion for now
+        # print("error1", error1)
+
+        return action
     def get_actions_Forward(self, observation):
 
         action = np.zeros(12)
@@ -209,12 +271,14 @@ class DoggoController:
         if self.flag == False:
             self.flag = True
             self.vel_start = vel_new[0]
-        # hip_z_phase = [0.3,0.3,0,0]   #rotation to left
-        # hip_z_phase = [0,0,0.3,-0.3]   #rotation to left
+        # hip_z_phase = [0.3,0.3,-0,-0]   #rotation to left
+        hip_z_phase = [0,0,0.3,0.3]   #rotation to left
+        # hip_z_phase =[-0.1,-0.1,0,0]
         # if vel_new[1] - self.vel_start > 0:
         #     hip_z_phase = [0.3, 0.3, 0, 0]
         # else:
         #     hip_z_phase = [0, 0, 0, 0]
+        # hip_z_phase = [-0.3,0.3,0,0]
 
         self.vel_pre = vel_new
         dir_z = np.zeros(4)
