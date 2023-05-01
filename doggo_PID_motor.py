@@ -89,6 +89,7 @@ if __name__ == "__main__":
 
     env = gym.make('Safexp-DoggoGoal2-v0')
     obs = env.reset()
+    env.action_space
     # model = PIDController()
     model = DoggoController()
     # motorIndex = [48,52,56,60,46,50,54,58,38,40,42,44]

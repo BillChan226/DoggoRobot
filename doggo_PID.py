@@ -147,7 +147,9 @@ class DoggoController:
 
         self.dirzOld = np.zeros(4)
         self.dirzSum = np.zeros(4)
-    def get_actions(self, observation,actionNum):
+        self.graph = [[],[],[],[]]
+
+    def get_actions(self, obs, actionNum):
 
         action = np.zeros(12)
         vel_new = obs[101:104]
@@ -157,8 +159,9 @@ class DoggoController:
             self.vel_start = vel_new[0]
         hip_z_phase = [0,0,0,0]
 
-        actionDic = {0:"forward",1:"left circle",2:"left rotate",3:"right circle",4:"right rotate"}
+        actionDic = {0:"forward",1:"left circle",2:"left rotate",3:"right circle",4:"right rotate",5:"forward_slower"}
         if actionNum == 0:
+            #print("vel_new[0] ",vel_new)
             if vel_new[0] - self.vel_start > 0:
                 hip_z_phase = self.left
             else:
@@ -172,192 +175,48 @@ class DoggoController:
             hip_z_phase = [0,0,0.3,0.3]
         elif actionNum == 4:
             hip_z_phase = [0, 0, 0.3, -0.3]
+        elif actionNum == 5:
+            hip_z_phase = [0, 0, 0, 0]
 
 
         self.vel_pre = vel_new
         dir_z = np.zeros(4)
         for i in range(4):
-            dir_z[i] = observation[48 + 4 * i] - hip_z_phase[i]
+            dir_z[i] = obs[48 + 4 * i] - hip_z_phase[i]
+            self.graph[i].append(dir_z[i])
         self.dirzSum = np.add(dir_z, self.dirzSum)
+
         for i in range(4):
             action[i] = -np.clip(dir_z[i] * self.kp + self.dirzSum[i] *self.ki + (self.dirzOld[i]-dir_z[i])*self.kd, -1, 1)
 
-            dir_y = observation[46 + 4 * i]  # + self.hip_y_phase[i]
-
+            dir_y = obs[46 + 4 * i]  # + self.hip_y_phase[i]
+            # self.graph[i].append(dir_y)
             action[i + 4] = -np.clip(dir_y, -1, 1)
-
-            action[i + 8] = 0
-
-            # error1 = observation[48+4*i]-0.1
-            # error2 = observation[50+4*i]-0
-
-            # if abs(error1) > 0.1:
-
-            #     action[i] = -np.clip(error1*1.5, -1, 1)
-            #     if i == 0: action[i] = action[i] #+ 0.3
-            # else:
-            #     action[i] = 0
-
-            # if abs(error2) > 0.1:
-            #     action[i+4] = -np.clip(error2, -1, 1)
-            # else: action[i+4] = 0
-
-        # action[i+8] = 0
-        # print("hip_y", observation[46+4*i])
-        # print("hip_z", observation[48+4*i])
-        # print("ankle1", observation[38+4*i])
-        # print("ankle2", observation[39+4*i])
-
-        # action[i+8] = 0 # match the hip motion for now
-        # print("error1", error1)
-
-        return action
-    def get_actions_Forward(self, observation):
-
-        action = np.zeros(12)
-        vel_new = obs[101:104]
-
-        if self.flag == False:
-            self.flag = True
-            self.vel_start = vel_new[0]
-
-        if vel_new[0] - self.vel_start > 0:
-            hip_z_phase = self.left
-        else:
-            hip_z_phase = self.right
-
-        self.vel_pre = vel_new
-        dir_z = np.zeros(4)
-        for i in range(4):
-            dir_z[i] = observation[48 + 4 * i] - hip_z_phase[i]
-        self.dirzSum = np.add(dir_z, self.dirzSum)
-        for i in range(4):
-            action[i] = -np.clip(dir_z[i] * self.kp + self.dirzSum[i] *self.ki + (self.dirzOld[i]-dir_z[i])*self.kd, -1, 1)
-
-            dir_y = observation[46 + 4 * i]  # + self.hip_y_phase[i]
-
-            action[i + 4] = -np.clip(dir_y, -1, 1)
-
-            action[i + 8] = 0
-
-            # error1 = observation[48+4*i]-0.1
-            # error2 = observation[50+4*i]-0
-
-            # if abs(error1) > 0.1:
-
-            #     action[i] = -np.clip(error1*1.5, -1, 1)
-            #     if i == 0: action[i] = action[i] #+ 0.3
-            # else:
-            #     action[i] = 0
-
-            # if abs(error2) > 0.1:
-            #     action[i+4] = -np.clip(error2, -1, 1)
-            # else: action[i+4] = 0
-
-        # action[i+8] = 0
-        # print("hip_y", observation[46+4*i])
-        # print("hip_z", observation[48+4*i])
-        # print("ankle1", observation[38+4*i])
-        # print("ankle2", observation[39+4*i])
-
-        # action[i+8] = 0 # match the hip motion for now
-        # print("error1", error1)
+            action[i+8] = 0
+            # action[i + 8] = -np.clip(obs[38 + 2 * i] , -1, 1)
+        self.dirzOld = dir_z
 
         return action
 
-    def get_actions_Backward(self, observation):
-
-        action = np.zeros(12)
-        vel_new = obs[101:104]
-
-        if self.flag == False:
-            self.flag = True
-            self.vel_start = vel_new[0]
-        # hip_z_phase = [0.3,0.3,-0,-0]   #rotation to left
-        # hip_z_phase = [0.3,-0.3,0.3,0.3]   #rotation to left
-        # hip_z_phase =[-0.1,-0.1,0,0]
-        # if vel_new[1] - self.vel_start > 0:
-        #     hip_z_phase = [0.3, 0.3, 0, 0]
-        # else:
-        #     hip_z_phase = [0, 0, 0, 0]
-        # hip_z_phase = [-0.3,0.3,0,0]
-
-        self.vel_pre = vel_new
-        dir_z = np.zeros(4)
-        for i in range(4):
-            dir_z[i] = observation[48 + 4 * i] - hip_z_phase[i]
-        self.dirzSum = np.add(dir_z, self.dirzSum)
-        for i in range(4):
-            action[i] = -np.clip(dir_z[i] * self.kp + self.dirzSum[i] *self.ki + (self.dirzOld[i]-dir_z[i])*self.kd, -1, 1)
-
-            dir_y = observation[46 + 4 * i]  # + self.hip_y_phase[i]
-
-            action[i + 4] = -np.clip(dir_y, -1, 1)
-
-            action[i + 8] = 0
-
-        return action
-
-    
-
-    def get_actions_rotation(self, observation, orientation):
-
-        action = np.zeros(12)
-
-        if orientation == 'left':
-            hip_z_phase = self.left
-        if orientation == 'right':
-            hip_z_phase = self.right
-
-        dir_z = np.zeros(4)
-        for i in range(4):
-            dir_z[i] = observation[48 + 4 * i] - hip_z_phase[i]
-        self.dirzSum = np.add(dir_z, self.dirzSum)
-        for i in range(4):
-            action[i] = -np.clip(dir_z[i] * self.ro_kp + self.dirzSum[i] *self.ro_ki + (self.dirzOld[i]-dir_z[i])*self.ro_kd, -1, 1)
-
-            dir_y = observation[46 + 4 * i]  # + self.hip_y_phase[i]
-
-            action[i + 4] = -np.clip(dir_y, -1, 1)
-
-            action[i + 8] = 0
-
-        return action
-    
-
-
-if __name__ == "__main__":
-
-    env = gym.make('Safexp-DoggoGoal2-v0')
-    obs = env.reset()
+env = gym.make('Safexp-DoggoGoal2-v0')
+obs = env.reset()
     # model = PIDController()
-    model = DoggoController()
+model = DoggoController()
 
-    start_time = time.time()
-    action = model.get_actions(obs,1)
-    test = "Forward"
-    test = "Backward"
-    # test = "Left"
-    # test = "Right"
 
-    for i in range(1000):
-        # print("obs", obs)
-        # for sensor in env.sensors_obs:  # Explicitly listed sensors
-        #         dim = env.robot.sensor_dim[sensor]
-        #         print("obs-dim",sensor, dim)
-        # action = np.ones(12)
-        # print("action", action)
-        if test == "Forward":
-            action = model.get_actions_Forward(obs)
-        if test == "Backward":
-            action = model.get_actions(obs,2)
-        if test == "Left":
-            action = model.get_actions_rotation(obs, 'left')
-        if test == "Right":
-            action = model.get_actions_rotation(obs, 'right')
+reward = 0
 
-        obs, reward, done, info = env.step(action)
+#obs = env.reset()
+for i in range(1000):
+    #motor_control = np.ones(12)
+    #print("obs", obs[0])
+    action = model.get_actions(obs, 4)
+    obs, reward, done, info = env.step(action)
+    
+    env.render()
+import matplotlib.pyplot as plt
 
-        env.render()
-
-        print("velocimeter", obs[101:104])
+for i in range(4):
+    plt.plot(model.graph[i], label = str(i))
+plt.legend()
+plt.show()
